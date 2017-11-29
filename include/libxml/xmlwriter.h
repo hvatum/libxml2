@@ -47,6 +47,8 @@ extern "C" {
 /*
  * Functions
  */
+    XMLPUBFUN int XMLCALL
+        xmlTextWriterSetParserOptions(xmlTextWriterPtr writer, int options);
 
 
 /*

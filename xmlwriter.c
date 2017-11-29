@@ -505,6 +505,19 @@ xmlFreeTextWriter(xmlTextWriterPtr writer)
 }
 
 /**
+ * xmlTextWriterSetParserOptions:
+ * @writer the xmlTextWriterPtr
+ *
+ * Allow setting options for the parser context
+ * used in xmlTextWriter
+ */
+int
+xmlTextWriterSetParserOptions(xmlTextWriterPtr writer, int options)
+{
+    return xmlCtxtUseOptions(writer->ctxt, options);
+}
+
+/**
  * xmlTextWriterStartDocument:
  * @writer:  the xmlTextWriterPtr
  * @version:  the xml version ("1.0") or NULL for default ("1.0")
