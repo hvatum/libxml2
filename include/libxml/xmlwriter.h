@@ -50,6 +50,10 @@ extern "C" {
     XMLPUBFUN int XMLCALL
         xmlTextWriterSetParserOptions(xmlTextWriterPtr writer, int options);
 
+    XMLPUBFUN int XMLCALL
+        xmlTextWriterGetParserOptions(xmlTextWriterPtr writer);
+
+
 
 /*
  * Document

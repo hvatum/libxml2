@@ -507,14 +507,48 @@ xmlFreeTextWriter(xmlTextWriterPtr writer)
 /**
  * xmlTextWriterSetParserOptions:
  * @writer the xmlTextWriterPtr
+ * @options options-flags, see xmlParserOption
+ * in parser.h
  *
  * Allow setting options for the parser context
- * used in xmlTextWriter
+ * used in xmlTextWriter. This is usefull when
+ * for instance you are creating xml-files larger than 10MB
+ * and thus needs to set XML_PARSER_HUGE on the parser.
  */
 int
 xmlTextWriterSetParserOptions(xmlTextWriterPtr writer, int options)
 {
-    return xmlCtxtUseOptions(writer->ctxt, options);
+    int dictNames = writer->ctxt->dictNames;
+
+    int ret = xmlCtxtUseOptions(writer->ctxt, options);
+
+    /*
+     * Must set dictNames back to previous value, unless
+     * we are setting XML_PARSE_NODICT, which changes the
+     * value to 0.
+     * If not there will be trouble when freeing doc after
+     * freeing writer when WriterPtr comes from
+     * xmlNewTextWriterTree(xmlDocPtr doc, xmlNodePtr node, int compression)
+     *
+     */
+    if (!(options & XML_PARSE_NODICT))
+        writer->ctxt->dictNames = dictNames;
+
+
+    return ret;
+}
+
+/**
+ * xmlTextWriterGetParserOptions:
+ * @writer the xmlTextWriterPtr
+ *
+ * Allow getting options for the parser context
+ * used in xmlTextWriter
+ */
+int
+xmlTextWriterGetParserOptions(xmlTextWriterPtr writer)
+{
+    return writer->ctxt->options;
 }
 
 /**
