@@ -20,8 +20,7 @@ pipeline {
                     }
                     stage ('Archive') {
                         steps {
-                            archiveArtifacts artifacts: 'build/*.lo'
-                            archiveArtifacts artifacts: 'build/*.la'
+                            archiveArtifacts artifacts: 'build/.libs/*.so*'
                         }
                     }
                 }
