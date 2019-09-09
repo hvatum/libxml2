@@ -3,7 +3,9 @@ pipeline {
         stages {
             stage('Build') {
                 agent {
-                    docker {image '311173c2826b'}
+                    agent {
+                        dockerfile true
+                    }
                 }
                 stages {
                     stage('Configure') {
