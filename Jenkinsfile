@@ -10,7 +10,7 @@ pipeline {
                         steps {
                             sh 'make distclean || true'
                             sh 'mkdir -p build && rm -rf /tmp/libxmlinstall && mkdir -p /tmp/libxmlinstall/usr/local'
-                            sh 'cd build && ../autogen.sh --prefix=/tmp/libxmlinstall/usr/local --without-python'
+                            sh 'cd build && CFLAGS=-m32 LDFLAGS=-m32 ../autogen.sh --prefix=/tmp/libxmlinstall/usr/local --without-python'
                         }
                     }
                     stage('Build') {
