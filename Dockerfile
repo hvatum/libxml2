@@ -5,6 +5,8 @@ RUN sed -i 's|main|main contrib non-free|g' /etc/apt/sources.list && \
 	gcc g++ build-essential make git cifs-utils sudo wget gnupg1 \
 	 python-dev autoconf automake libtool bash locales \
 	gcc-multilib g++-multilib libc6-dev:i386 libpng16-16:i386
+
+RUN apt-get install -y pkg-config
 	 
 RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
     dpkg-reconfigure --frontend=noninteractive locales && \
