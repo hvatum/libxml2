@@ -3,9 +3,7 @@ pipeline {
         stages {
             stage('Build') {
                 agent {
-                    agent {
-                        dockerfile true
-                    }
+                    dockerfile true
                 }
                 stages {
                     stage('Configure') {
