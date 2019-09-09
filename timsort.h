@@ -74,7 +74,7 @@ typedef unsigned __int64 uint64_t;
 static int compute_minrun(const uint64_t);
 
 #ifndef CLZ
-#ifdef __GNUC__
+#if defined(__GNUC__) && ((__GNUC__ == 3 && __GNUC_MINOR__ >= 4) || (__GNUC__ > 3))
 #define CLZ __builtin_clzll
 #else
 
@@ -404,7 +404,8 @@ static void TIM_SORT_MERGE(SORT_TYPE *dst, const TIM_SORT_RUN_T *stack, const in
     j = curr + A;
     k = curr + A + B;
 
-    while (k-- > curr) {
+    while (k > curr) {
+      k--;
       if ((i > 0) && (j > curr)) {
         if (SORT_CMP(dst[j - 1], storage[i - 1]) > 0) {
           dst[k] = dst[--j];

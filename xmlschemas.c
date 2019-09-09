@@ -24665,7 +24665,7 @@ xmlSchemaVCheckCVCSimpleType(xmlSchemaAbstractCtxtPtr actxt,
 		    ret = XML_SCHEMAV_CVC_DATATYPE_VALID_1_2_1;
 	    }
 	}
-	if (fireErrors && (ret > 0))
+	else if (fireErrors && (ret > 0))
 	    xmlSchemaSimpleTypeErr(actxt, ret, node, value, type, 1);
     } else if (WXS_IS_LIST(type)) {
 
@@ -27653,6 +27653,17 @@ xmlSchemaClearValidCtxt(xmlSchemaValidCtxtPtr vctxt)
 	vctxt->nbIdcNodes = 0;
 	vctxt->sizeIdcNodes = 0;
     }
+
+    if (vctxt->idcKeys != NULL) {
+	int i;
+	for (i = 0; i < vctxt->nbIdcKeys; i++)
+	    xmlSchemaIDCFreeKey(vctxt->idcKeys[i]);
+	xmlFree(vctxt->idcKeys);
+	vctxt->idcKeys = NULL;
+	vctxt->nbIdcKeys = 0;
+	vctxt->sizeIdcKeys = 0;
+    }
+
     /*
     * Note that we won't delete the XPath state pool here.
     */

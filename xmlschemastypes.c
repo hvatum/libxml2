@@ -3628,8 +3628,10 @@ xmlSchemaCompareDurations(xmlSchemaValPtr x, xmlSchemaValPtr y)
 	minday = 0;
 	maxday = 0;
     } else {
-	maxday = 366 * ((myear + 3) / 4) +
-	         365 * ((myear - 1) % 4);
+        /* FIXME: This doesn't take leap year exceptions every 100/400 years
+           into account. */
+	maxday = 365 * myear + (myear + 3) / 4;
+        /* FIXME: Needs to be calculated separately */
 	minday = maxday - 1;
     }
 
@@ -3877,7 +3879,7 @@ _xmlSchemaDateAdd (xmlSchemaValPtr dt, xmlSchemaValPtr dur)
 
         temp = r->mon + carry;
         r->mon = (unsigned int) MODULO_RANGE(temp, 1, 13);
-        r->year = r->year + (unsigned int) FQUOTIENT_RANGE(temp, 1, 13);
+        r->year = r->year + (long) FQUOTIENT_RANGE(temp, 1, 13);
         if (r->year == 0) {
             if (temp < 1)
                 r->year--;
