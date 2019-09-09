@@ -3,7 +3,7 @@ pipeline {
         stages {
             stage('Build') {
                 agent {
-                    docker (image '311173c2826b')
+                    docker {image '311173c2826b'}
                 }
                 stages {
                     stage('Configure') {
