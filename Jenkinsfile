@@ -8,9 +8,9 @@ pipeline {
                 stages {
                     stage('Configure') {
                         steps {
-                            sh 'make distclean || ./autogen.sh'
+                            sh 'make distclean || true'
                             sh 'mkdir -p build'
-                            sh 'cd build && ../configure'
+                            sh 'cd build && ../autogen.sh'
                         }
                     }
                     stage('Build') {
