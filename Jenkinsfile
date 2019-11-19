@@ -1,8 +1,8 @@
 pipeline {
     agent none
     stages {
-        parallel {
-            stages {
+	stage('Build all') {
+            parallel {
                 stage('Build') {
                     agent {
                         dockerfile true
@@ -55,6 +55,6 @@ pipeline {
                     }
                 }
 	    }
-	}
+        }
     }
 }
