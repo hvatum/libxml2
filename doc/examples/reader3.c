@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
     doc = extractFile(filename, (const xmlChar *) pattern);
     if (doc != NULL) {
         /*
-	 * ouptut the result.
+	 * output the result.
 	 */
         xmlDocDump(stdout, doc);
 	/*
@@ -115,6 +115,6 @@ int main(int argc, char **argv) {
 #else
 int main(void) {
     fprintf(stderr, "Reader, Pattern or output support not compiled in\n");
-    exit(1);
+    return(0);
 }
 #endif

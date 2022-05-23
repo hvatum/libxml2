@@ -1,5 +1,5 @@
 /**
- * xzlib.c: front end for the transparent suport of lzma compression
+ * xzlib.c: front end for the transparent support of lzma compression
  *          at the I/O layer, based on an example file from lzma project
  *
  * See Copyright for the status of this software.
@@ -11,10 +11,8 @@
 #ifdef LIBXML_LZMA_ENABLED
 
 #include <string.h>
-#ifdef HAVE_ERRNO_H
+#include <stdlib.h>
 #include <errno.h>
-#endif
-
 
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
@@ -27,9 +25,6 @@
 #endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
 #endif
 #ifdef LIBXML_ZLIB_ENABLED
 #include <zlib.h>
@@ -71,7 +66,7 @@ typedef struct {
     int err;                    /* error code */
     char *msg;                  /* error message */
     /* lzma stream */
-    int init;                   /* is the iniflate stream initialized */
+    int init;                   /* is the inflate stream initialized */
     lzma_stream strm;           /* stream structure in-place (not a pointer) */
     char padding1[32];          /* padding allowing to cope with possible
                                    extensions of above structure without
@@ -389,6 +384,10 @@ xz_head(xz_statep state)
     int flags;
     unsigned len;
 
+    /* Avoid unused variable warning if features are disabled. */
+    (void) flags;
+    (void) len;
+
     /* allocate read buffers and inflate memory */
     if (state->size == 0) {
         /* allocate buffers */
@@ -535,6 +534,10 @@ xz_decomp(xz_statep state)
     lzma_stream *strm = &(state->strm);
 
     lzma_action action = LZMA_RUN;
+
+    /* Avoid unused variable warning if features are disabled. */
+    (void) crc;
+    (void) len;
 
     /* fill output buffer up to end of deflate stream */
     had = strm->avail_out;
