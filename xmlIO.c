@@ -185,9 +185,9 @@ static const char *IOerr[] = {
     "already connected",	/* EISCONN */
     "connection refused",	/* ECONNREFUSED */
     "unreachable network",	/* ENETUNREACH */
-    "adddress in use",		/* EADDRINUSE */
+    "address in use",		/* EADDRINUSE */
     "already in use",		/* EALREADY */
-    "unknown address familly",	/* EAFNOSUPPORT */
+    "unknown address family",	/* EAFNOSUPPORT */
 };
 
 #if defined(_WIN32) || defined (__DJGPP__) && !defined (__CYGWIN__)
@@ -224,7 +224,7 @@ __xmlIOWin32UTF8ToWChar(const char *u8String)
 
 /**
  * xmlIOErrMemory:
- * @extra:  extra informations
+ * @extra:  extra information
  *
  * Handle an out of memory condition
  */
@@ -238,7 +238,7 @@ xmlIOErrMemory(const char *extra)
  * __xmlIOErr:
  * @code:  the error number
  * @
- * @extra:  extra informations
+ * @extra:  extra information
  *
  * Handle an I/O error
  */
@@ -416,7 +416,7 @@ __xmlIOErr(int domain, int code, const char *extra)
 /**
  * xmlIOErr:
  * @code:  the error number
- * @extra:  extra informations
+ * @extra:  extra information
  *
  * Handle an I/O error
  */
@@ -429,7 +429,7 @@ xmlIOErr(int code, const char *extra)
 /**
  * __xmlLoaderErr:
  * @ctx: the parser context
- * @extra:  extra informations
+ * @extra:  extra information
  *
  * Handle a resource access error
  */
@@ -560,6 +560,33 @@ xmlCleanupOutputCallbacks(void)
     xmlOutputCallbackNr = 0;
     xmlOutputCallbackInitialized = 0;
 }
+
+/**
+ * xmlPopOutputCallbacks:
+ *
+ * Remove the top output callbacks from the output stack. This includes the
+ * compiled-in I/O.
+ *
+ * Returns the number of output callback registered or -1 in case of error.
+ */
+int
+xmlPopOutputCallbacks(void)
+{
+    if (!xmlOutputCallbackInitialized)
+        return(-1);
+
+    if (xmlOutputCallbackNr <= 0)
+        return(-1);
+
+    xmlOutputCallbackNr--;
+    xmlOutputCallbackTable[xmlOutputCallbackNr].matchcallback = NULL;
+    xmlOutputCallbackTable[xmlOutputCallbackNr].opencallback = NULL;
+    xmlOutputCallbackTable[xmlOutputCallbackNr].writecallback = NULL;
+    xmlOutputCallbackTable[xmlOutputCallbackNr].closecallback = NULL;
+
+    return(xmlOutputCallbackNr);
+}
+
 #endif /* LIBXML_OUTPUT_ENABLED */
 
 /************************************************************************
@@ -2708,6 +2735,8 @@ __xmlOutputBufferCreateFilename(const char *URI,
 		    ret->writecallback = xmlGzfileWrite;
 		    ret->closecallback = xmlGzfileClose;
 		}
+		else
+		    xmlGzfileClose(context);
 		return(ret);
 	    }
 	}
@@ -3337,7 +3366,7 @@ xmlOutputBufferWrite(xmlOutputBufferPtr out, int len, const char *buf) {
     int nbchars = 0; /* number of chars to output to I/O */
     int ret;         /* return from function call */
     int written = 0; /* number of char written to I/O so far */
-    int chunk;       /* number of byte curreent processed from buf */
+    int chunk;       /* number of byte current processed from buf */
 
     if ((out == NULL) || (out->error)) return(-1);
     if (len < 0) return(0);
@@ -3377,7 +3406,7 @@ xmlOutputBufferWrite(xmlOutputBufferPtr out, int len, const char *buf) {
             if (out->writecallback)
 	        nbchars = xmlBufUse(out->conv);
             else
-                nbchars = ret;
+                nbchars = ret >= 0 ? ret : 0;
 	} else {
 	    ret = xmlBufAdd(out->buffer, (const xmlChar *) buf, chunk);
 	    if (ret != 0)
@@ -3413,7 +3442,10 @@ xmlOutputBufferWrite(xmlOutputBufferPtr out, int len, const char *buf) {
 		out->error = XML_IO_WRITE;
 		return(ret);
 	    }
-	    out->written += ret;
+            if (out->written > INT_MAX - ret)
+                out->written = INT_MAX;
+            else
+                out->written += ret;
 	}
 	written += nbchars;
     } while (len > 0);
@@ -3493,7 +3525,7 @@ xmlEscapeContent(unsigned char* out, int *outlen,
  * @escaping:  an optional escaping function (or NULL)
  *
  * Write the content of the string in the output I/O buffer
- * This routine escapes the caracters and then handle the I18N
+ * This routine escapes the characters and then handle the I18N
  * transcoding from internal UTF-8
  * The buffer is lossless, i.e. will store in case of partial
  * or delayed writes.
@@ -3572,7 +3604,7 @@ xmlOutputBufferWriteEscape(xmlOutputBufferPtr out, const xmlChar *str,
             if (out->writecallback)
 	        nbchars = xmlBufUse(out->conv);
             else
-                nbchars = ret;
+                nbchars = ret >= 0 ? ret : 0;
 	} else {
 	    ret = escaping(xmlBufEnd(out->buffer), &chunk, str, &cons);
 	    if ((ret < 0) || (chunk == 0)) /* chunk==0 => nothing done */
@@ -3609,7 +3641,10 @@ xmlOutputBufferWriteEscape(xmlOutputBufferPtr out, const xmlChar *str,
 		out->error = XML_IO_WRITE;
 		return(ret);
 	    }
-	    out->written += ret;
+            if (out->written > INT_MAX - ret)
+                out->written = INT_MAX;
+            else
+                out->written += ret;
 	} else if (xmlBufAvail(out->buffer) < MINLEN) {
 	    xmlBufGrow(out->buffer, MINLEN);
 	}
@@ -3703,7 +3738,10 @@ xmlOutputBufferFlush(xmlOutputBufferPtr out) {
 	out->error = XML_IO_FLUSH;
 	return(ret);
     }
-    out->written += ret;
+    if (out->written > INT_MAX - ret)
+        out->written = INT_MAX;
+    else
+        out->written += ret;
 
 #ifdef DEBUG_INPUT
     xmlGenericError(xmlGenericErrorContext,
@@ -3951,7 +3989,7 @@ xmlResolveResourceFromCatalog(const char *URL, const char *ID,
  * @ID:  the System ID for the entity to load
  * @ctxt:  the context in which the entity is called or NULL
  *
- * By default we don't load external entitites, yet.
+ * By default we don't load external entities, yet.
  *
  * Returns a new allocated xmlParserInputPtr, or NULL.
  */

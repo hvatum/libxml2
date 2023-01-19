@@ -588,8 +588,8 @@ xmlTextWriterStartDocument(xmlTextWriterPtr writer, const char *version,
     if (encoding != NULL) {
         encoder = xmlFindCharEncodingHandler(encoding);
         if (encoder == NULL) {
-            xmlWriterErrMsg(writer, XML_ERR_NO_MEMORY,
-                            "xmlTextWriterStartDocument : out of memory!\n");
+            xmlWriterErrMsg(writer, XML_ERR_UNSUPPORTED_ENCODING,
+                            "xmlTextWriterStartDocument : unsupported encoding\n");
             return -1;
         }
     }
@@ -848,7 +848,7 @@ xmlTextWriterStartComment(xmlTextWriterPtr writer)
  * xmlTextWriterEndComment:
  * @writer:  the xmlTextWriterPtr
  *
- * End the current xml coment.
+ * End the current xml comment.
  *
  * Returns the bytes written (may be 0 because of buffering) or -1 in case of error
  */
