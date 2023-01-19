@@ -21,12 +21,9 @@
 #include <string.h> /* for memset() only ! */
 #include <stddef.h>
 #include <limits.h>
-#ifdef HAVE_CTYPE_H
 #include <ctype.h>
-#endif
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
+
 #ifdef LIBXML_ZLIB_ENABLED
 #include <zlib.h>
 #endif
@@ -358,7 +355,7 @@ xmlSplitQName3(const xmlChar *name, int *len) {
 
 #define CUR_SCHAR(s, l) xmlStringCurrentChar(NULL, s, &l)
 
-#if defined(LIBXML_TREE_ENABLED) || defined(LIBXML_XPATH_ENABLED) || defined(LIBXML_SCHEMAS_ENABLED) || defined(LIBXML_DEBUG_ENABLED) || defined (LIBXML_HTML_ENABLED) || defined(LIBXML_SAX1_ENABLED) || defined(LIBXML_HTML_ENABLED) || defined(LIBXML_WRITER_ENABLED) || defined(LIBXML_DOCB_ENABLED) || defined(LIBXML_LEGACY_ENABLED)
+#if defined(LIBXML_TREE_ENABLED) || defined(LIBXML_XPATH_ENABLED) || defined(LIBXML_SCHEMAS_ENABLED) || defined(LIBXML_DEBUG_ENABLED) || defined (LIBXML_HTML_ENABLED) || defined(LIBXML_SAX1_ENABLED) || defined(LIBXML_HTML_ENABLED) || defined(LIBXML_WRITER_ENABLED) || defined(LIBXML_LEGACY_ENABLED)
 /**
  * xmlValidateNCName:
  * @value: the value to check
@@ -1287,7 +1284,7 @@ xmlStringLenGetNodeList(const xmlDoc *doc, const xmlChar *value, int len) {
 
     buf = xmlBufCreateSize(0);
     if (buf == NULL) return(NULL);
-    xmlBufSetAllocationScheme(buf, XML_BUFFER_ALLOC_HYBRID);
+    xmlBufSetAllocationScheme(buf, XML_BUFFER_ALLOC_DOUBLEIT);
 
     q = cur;
     while ((cur < end) && (*cur != 0)) {
@@ -1508,7 +1505,7 @@ xmlStringGetNodeList(const xmlDoc *doc, const xmlChar *value) {
 
     buf = xmlBufCreateSize(0);
     if (buf == NULL) return(NULL);
-    xmlBufSetAllocationScheme(buf, XML_BUFFER_ALLOC_HYBRID);
+    xmlBufSetAllocationScheme(buf, XML_BUFFER_ALLOC_DOUBLEIT);
 
     q = cur;
     while (*cur != 0) {
@@ -3706,9 +3703,6 @@ xmlFreeNodeList(xmlNodePtr cur) {
     while (1) {
         while ((cur->children != NULL) &&
                (cur->type != XML_DOCUMENT_NODE) &&
-#ifdef LIBXML_DOCB_ENABLED
-               (cur->type != XML_DOCB_DOCUMENT_NODE) &&
-#endif
                (cur->type != XML_HTML_DOCUMENT_NODE) &&
                (cur->type != XML_DTD_NODE) &&
                (cur->type != XML_ENTITY_REF_NODE)) {
@@ -3719,9 +3713,6 @@ xmlFreeNodeList(xmlNodePtr cur) {
         next = cur->next;
         parent = cur->parent;
 	if ((cur->type == XML_DOCUMENT_NODE) ||
-#ifdef LIBXML_DOCB_ENABLED
-            (cur->type == XML_DOCB_DOCUMENT_NODE) ||
-#endif
             (cur->type == XML_HTML_DOCUMENT_NODE)) {
             xmlFreeDoc((xmlDocPtr) cur);
         } else if (cur->type != XML_DTD_NODE) {
@@ -4238,9 +4229,6 @@ xmlStaticCopyNode(xmlNodePtr node, xmlDocPtr doc, xmlNodePtr parent,
 
         case XML_DOCUMENT_NODE:
         case XML_HTML_DOCUMENT_NODE:
-#ifdef LIBXML_DOCB_ENABLED
-        case XML_DOCB_DOCUMENT_NODE:
-#endif
 #ifdef LIBXML_TREE_ENABLED
 	    return((xmlNodePtr) xmlCopyDoc((xmlDocPtr) node, extended));
 #endif /* LIBXML_TREE_ENABLED */
@@ -4299,6 +4287,14 @@ xmlStaticCopyNode(xmlNodePtr node, xmlDocPtr doc, xmlNodePtr parent,
 	if ((__xmlRegisterCallbacks) && (xmlRegisterNodeDefaultValue))
 	    xmlRegisterNodeDefaultValue((xmlNodePtr)ret);
 
+        /*
+         * Note that since ret->parent is already set, xmlAddChild will
+         * return early and not actually insert the node. It will only
+         * coalesce text nodes and unnecessarily call xmlSetTreeDoc.
+         * Assuming that the subtree to be copied always has its text
+         * nodes coalesced, the somewhat confusing call to xmlAddChild
+         * could be removed.
+         */
         tmp = xmlAddChild(parent, ret);
 	/* node could have coalesced */
 	if (tmp != ret)
@@ -4354,8 +4350,49 @@ xmlStaticCopyNode(xmlNodePtr node, xmlDocPtr doc, xmlNodePtr parent,
 	}
 	ret->last = ret->children;
     } else if ((node->children != NULL) && (extended != 2)) {
-        ret->children = xmlStaticCopyNodeList(node->children, doc, ret);
-	UPDATE_LAST_CHILD_AND_PARENT(ret)
+        xmlNodePtr cur, insert;
+
+        cur = node->children;
+        insert = ret;
+        while (cur != NULL) {
+            xmlNodePtr copy = xmlStaticCopyNode(cur, doc, insert, 2);
+            if (copy == NULL) {
+                xmlFreeNode(ret);
+                return(NULL);
+            }
+
+            /* Check for coalesced text nodes */
+            if (insert->last != copy) {
+                if (insert->last == NULL) {
+                    insert->children = copy;
+                } else {
+                    copy->prev = insert->last;
+                    insert->last->next = copy;
+                }
+                insert->last = copy;
+            }
+
+            if ((cur->type != XML_ENTITY_REF_NODE) &&
+                (cur->children != NULL)) {
+                cur = cur->children;
+                insert = copy;
+                continue;
+            }
+
+            while (1) {
+                if (cur->next != NULL) {
+                    cur = cur->next;
+                    break;
+                }
+
+                cur = cur->parent;
+                insert = insert->parent;
+                if (cur == node) {
+                    cur = NULL;
+                    break;
+                }
+            }
+        }
     }
 
 out:
@@ -5040,9 +5077,6 @@ xmlNodeSetLang(xmlNodePtr cur, const xmlChar *lang) {
         case XML_ENTITY_REF_NODE:
         case XML_ENTITY_NODE:
 	case XML_NAMESPACE_DECL:
-#ifdef LIBXML_DOCB_ENABLED
-	case XML_DOCB_DOCUMENT_NODE:
-#endif
 	case XML_XINCLUDE_START:
 	case XML_XINCLUDE_END:
 	    return;
@@ -5116,9 +5150,6 @@ xmlNodeSetSpacePreserve(xmlNodePtr cur, int val) {
 	case XML_NAMESPACE_DECL:
 	case XML_XINCLUDE_START:
 	case XML_XINCLUDE_END:
-#ifdef LIBXML_DOCB_ENABLED
-	case XML_DOCB_DOCUMENT_NODE:
-#endif
 	    return;
         case XML_ELEMENT_NODE:
         case XML_ATTRIBUTE_NODE:
@@ -5199,9 +5230,6 @@ xmlNodeSetName(xmlNodePtr cur, const xmlChar *name) {
 	case XML_NAMESPACE_DECL:
 	case XML_XINCLUDE_START:
 	case XML_XINCLUDE_END:
-#ifdef LIBXML_DOCB_ENABLED
-	case XML_DOCB_DOCUMENT_NODE:
-#endif
 	    return;
         case XML_ELEMENT_NODE:
         case XML_ATTRIBUTE_NODE:
@@ -5272,9 +5300,6 @@ xmlNodeSetBase(xmlNodePtr cur, const xmlChar* uri) {
         case XML_ATTRIBUTE_NODE:
 	    break;
         case XML_DOCUMENT_NODE:
-#ifdef LIBXML_DOCB_ENABLED
-	case XML_DOCB_DOCUMENT_NODE:
-#endif
         case XML_HTML_DOCUMENT_NODE: {
 	    xmlDocPtr doc = (xmlDocPtr) cur;
 
@@ -5536,9 +5561,6 @@ xmlBufGetNodeContent(xmlBufPtr buf, const xmlNode *cur)
         case XML_XINCLUDE_END:
             break;
         case XML_DOCUMENT_NODE:
-#ifdef LIBXML_DOCB_ENABLED
-        case XML_DOCB_DOCUMENT_NODE:
-#endif
         case XML_HTML_DOCUMENT_NODE:
 	    cur = cur->children;
 	    while (cur!= NULL) {
@@ -5586,6 +5608,7 @@ xmlNodeGetContent(const xmlNode *cur)
                 buf = xmlBufCreateSize(64);
                 if (buf == NULL)
                     return (NULL);
+                xmlBufSetAllocationScheme(buf, XML_BUFFER_ALLOC_DOUBLEIT);
 		xmlBufGetNodeContent(buf, cur);
                 ret = xmlBufDetach(buf);
                 xmlBufFree(buf);
@@ -5611,6 +5634,7 @@ xmlNodeGetContent(const xmlNode *cur)
                 buf = xmlBufCreate();
                 if (buf == NULL)
                     return (NULL);
+                xmlBufSetAllocationScheme(buf, XML_BUFFER_ALLOC_DOUBLEIT);
 
                 xmlBufGetNodeContent(buf, cur);
 
@@ -5626,9 +5650,6 @@ xmlNodeGetContent(const xmlNode *cur)
         case XML_XINCLUDE_END:
             return (NULL);
         case XML_DOCUMENT_NODE:
-#ifdef LIBXML_DOCB_ENABLED
-        case XML_DOCB_DOCUMENT_NODE:
-#endif
         case XML_HTML_DOCUMENT_NODE: {
 	    xmlBufPtr buf;
 	    xmlChar *ret;
@@ -5636,6 +5657,7 @@ xmlNodeGetContent(const xmlNode *cur)
 	    buf = xmlBufCreate();
 	    if (buf == NULL)
 		return (NULL);
+            xmlBufSetAllocationScheme(buf, XML_BUFFER_ALLOC_DOUBLEIT);
 
 	    xmlBufGetNodeContent(buf, (xmlNodePtr) cur);
 
@@ -5720,9 +5742,6 @@ xmlNodeSetContent(xmlNodePtr cur, const xmlChar *content) {
         case XML_DOCUMENT_TYPE_NODE:
 	case XML_XINCLUDE_START:
 	case XML_XINCLUDE_END:
-#ifdef LIBXML_DOCB_ENABLED
-	case XML_DOCB_DOCUMENT_NODE:
-#endif
 	    break;
         case XML_NOTATION_NODE:
 	    break;
@@ -5800,9 +5819,6 @@ xmlNodeSetContentLen(xmlNodePtr cur, const xmlChar *content, int len) {
 	case XML_NAMESPACE_DECL:
 	case XML_XINCLUDE_START:
 	case XML_XINCLUDE_END:
-#ifdef LIBXML_DOCB_ENABLED
-	case XML_DOCB_DOCUMENT_NODE:
-#endif
 	    break;
         case XML_ELEMENT_DECL:
 	    /* TODO !!! */
@@ -5882,9 +5898,6 @@ xmlNodeAddContentLen(xmlNodePtr cur, const xmlChar *content, int len) {
 	case XML_NAMESPACE_DECL:
 	case XML_XINCLUDE_START:
 	case XML_XINCLUDE_END:
-#ifdef LIBXML_DOCB_ENABLED
-	case XML_DOCB_DOCUMENT_NODE:
-#endif
 	    break;
         case XML_ELEMENT_DECL:
         case XML_ATTRIBUTE_DECL:
@@ -6533,6 +6546,9 @@ xmlGetPropNodeInternal(const xmlNode *node, const xmlChar *name,
 		       const xmlChar *nsName, int useDTD)
 {
     xmlAttrPtr prop;
+
+    /* Avoid unused variable warning if features are disabled. */
+    (void) useDTD;
 
     if ((node == NULL) || (node->type != XML_ELEMENT_NODE) || (name == NULL))
 	return(NULL);
@@ -10170,5 +10186,3 @@ xmlDOMWrapAdoptNode(xmlDOMWrapCtxtPtr ctxt,
     return (0);
 }
 
-#define bottom_tree
-#include "elfgcchack.h"

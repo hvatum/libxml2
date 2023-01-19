@@ -2849,6 +2849,11 @@ xmlRelaxNGInitTypes(void)
 /**
  * xmlRelaxNGCleanupTypes:
  *
+ * DEPRECATED: This function will be made private. Call xmlCleanupParser
+ * to free global state but see the warnings there. xmlCleanupParser
+ * should be only called once at program exit. In most cases, you don't
+ * have call cleanup functions at all.
+ *
  * Cleanup the default Schemas type library associated to RelaxNG
  */
 void
@@ -11098,6 +11103,4 @@ xmlRelaxNGValidateDoc(xmlRelaxNGValidCtxtPtr ctxt, xmlDocPtr doc)
     return (ret);
 }
 
-#define bottom_relaxng
-#include "elfgcchack.h"
 #endif /* LIBXML_SCHEMAS_ENABLED */
