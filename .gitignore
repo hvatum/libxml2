@@ -118,3 +118,13 @@ xstc/Makefile
 xstc/Makefile.in
 xstc/Tests
 xstc/xsts-*.tar.gz
+build/xml2Conf.sh
+build/include/libxml/xmlversion.h
+build/python/libxml2-export.c
+build/python/libxml2-py.c
+build/python/libxml2-py.h
+build/python/libxml2.py
+build/python/libxml2class.py
+build/python/libxml2class.txt
+build/python/libxml2mod.la
+build/python/setup.py
