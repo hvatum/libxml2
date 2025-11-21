@@ -1,6 +1,3 @@
-exampledir = $(docdir)/python/examples
-dist_example_DATA = $(PYTESTS) $(XMLS)
-
 PYTESTS=	\
     build.py	\
     attribs.py	\
@@ -56,6 +53,8 @@ XMLS=		\
     invalid.xml	\
     test.dtd
 
+EXTRA_DIST = $(PYTESTS) $(XMLS) setup_test.py
+
 CLEANFILES = core tmp.xml *.pyc
 
 if WITH_PYTHON
@@ -64,6 +63,7 @@ check-local:
 	@echo "## running Python regression tests"
 	@(export PYTHONPATH="..:../.libs:$(srcdir)/..:$$PYTHONPATH" ; \
 	  export LD_LIBRARY_PATH="$(top_builddir)/.libs:$$LD_LIBRARY_PATH" ; \
+	  export DYLD_LIBRARY_PATH="$(top_builddir)/.libs:$$DYLD_LIBRARY_PATH" ; \
 	  export PATH="$(top_builddir)/.libs:$$PATH" ; \
 	  for test in $(PYTESTS) ; do \
 	    log=`$(PYTHON) $(srcdir)/$$test` ; \
