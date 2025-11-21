@@ -8,20 +8,20 @@ pipeline {
                         dockerfile { filename 'Dockerfile-Bullseye-x64' }
                     }
                     stages {
-                        stage('Configure x64') {
+                        stage('Configure Bullseye x64') {
                             steps {
                                 sh 'make distclean || true'
                                 sh 'mkdir -p build && rm -rf /tmp/libxmlinstall && mkdir -p /tmp/libxmlinstall/usr/local'
                                 sh 'cd build && ../autogen.sh --prefix=/tmp/libxmlinstall/usr/local --without-python'
                             }
                         }
-                        stage('Build x64') {
+                        stage('Build Bullseye x64') {
                             steps {
                                 sh 'cd build && make -j && make install'
                                 sh 'tar -C /tmp/libxmlinstall -cf libxml2_bullseye_x64.tar.gz .'
                             }
                         }
-                        stage ('Archive x64') {
+                        stage ('Archive Bullseye x64') {
                             steps {
                                 archiveArtifacts artifacts: 'libxml2_bullseye_x64.tar.gz'
                             }
@@ -34,20 +34,20 @@ pipeline {
                         dockerfile { filename 'Dockerfile-Bookworm-x64' }
                     }
                     stages {
-                        stage('Configure x64') {
+                        stage('Configure Bookworm x64') {
                             steps {
                                 sh 'make distclean || true'
                                 sh 'mkdir -p build && rm -rf /tmp/libxmlinstall && mkdir -p /tmp/libxmlinstall/usr/local'
                                 sh 'cd build && ../autogen.sh --prefix=/tmp/libxmlinstall/usr/local --without-python'
                             }
                         }
-                        stage('Build x64') {
+                        stage('Build Bookworm x64') {
                             steps {
                                 sh 'cd build && make -j && make install'
                                 sh 'tar -C /tmp/libxmlinstall -cf libxml2_bookworm_x64.tar.gz .'
                             }
                         }
-                        stage ('Archive x64') {
+                        stage ('Archive Bookworm x64') {
                             steps {
                                 archiveArtifacts artifacts: 'libxml2_bookworm_x64.tar.gz'
                             }
@@ -60,20 +60,20 @@ pipeline {
                         dockerfile { filename 'Dockerfile-Trixie-x64' }
                     }
                     stages {
-                        stage('Configure x64') {
+                        stage('Configure Trixie x64') {
                             steps {
                                 sh 'make distclean || true'
                                 sh 'mkdir -p build && rm -rf /tmp/libxmlinstall && mkdir -p /tmp/libxmlinstall/usr/local'
                                 sh 'cd build && ../autogen.sh --prefix=/tmp/libxmlinstall/usr/local --without-python'
                             }
                         }
-                        stage('Build x64') {
+                        stage('Build Trixie x64') {
                             steps {
                                 sh 'cd build && make -j && make install'
                                 sh 'tar -C /tmp/libxmlinstall -cf libxml2_trixie_x64.tar.gz .'
                             }
                         }
-                        stage ('Archive x64') {
+                        stage ('Archive Trixie x64') {
                             steps {
                                 archiveArtifacts artifacts: 'libxml2_trixie_x64.tar.gz'
                             }
