@@ -70,7 +70,7 @@ pipeline {
                         stage('Build x64') {
                             steps {
                                 sh 'cd build && make -j && make install'
-                                sh 'tar -C /tmp/libxmlinstall -cf libxml2_bookworm_x64.tar.gz .'
+                                sh 'tar -C /tmp/libxmlinstall -cf libxml2_trixie_x64.tar.gz .'
                             }
                         }
                         stage ('Archive x64') {
