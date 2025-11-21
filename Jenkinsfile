@@ -12,7 +12,7 @@ pipeline {
                             steps {
                                 sh 'make distclean || true'
                                 sh 'mkdir -p build && rm -rf /tmp/libxmlinstall && mkdir -p /tmp/libxmlinstall/usr/local'
-                                sh 'cd build && ../autogen.sh --prefix=/tmp/libxmlinstall/usr/local --without-python'
+                                sh 'cd build && ../autogen.sh --prefix=/tmp/libxmlinstall/usr/local --without-python --with-iso8859x'
                             }
                         }
                         stage('Build Bullseye x64') {
@@ -38,7 +38,7 @@ pipeline {
                             steps {
                                 sh 'make distclean || true'
                                 sh 'mkdir -p build && rm -rf /tmp/libxmlinstall && mkdir -p /tmp/libxmlinstall/usr/local'
-                                sh 'cd build && ../autogen.sh --prefix=/tmp/libxmlinstall/usr/local --without-python'
+                                sh 'cd build && ../autogen.sh --prefix=/tmp/libxmlinstall/usr/local --without-python --with-iso8859x'
                             }
                         }
                         stage('Build Bookworm x64') {
@@ -64,7 +64,7 @@ pipeline {
                             steps {
                                 sh 'make distclean || true'
                                 sh 'mkdir -p build && rm -rf /tmp/libxmlinstall && mkdir -p /tmp/libxmlinstall/usr/local'
-                                sh 'cd build && ../autogen.sh --prefix=/tmp/libxmlinstall/usr/local --without-python'
+                                sh 'cd build && ../autogen.sh --prefix=/tmp/libxmlinstall/usr/local --without-python --with-iso8859x'
                             }
                         }
                         stage('Build Trixie x64') {
